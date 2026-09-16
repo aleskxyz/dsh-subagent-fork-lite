@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { SessionSeq, type SessionEvent } from '@deepseek-ai/dsh-session'
+import type { Agent } from '@deepseek-ai/dsh-agent'
 import {
+  buildForkLiteSeed,
   completedTurnPrefix,
   renumberSeed,
   windowLastCompletedTurns,
@@ -150,6 +152,33 @@ describe('fork-lite seed pipeline (invariant-clean shape)', () => {
     expect(seed[0]?.seq).toBe(0)
     expect(seed.map(e => e.seq)).toEqual(seed.map((_, i) => i))
     expect(seed.at(-1)?.type).toBe('turn/end')
+    expect(JSON.stringify(seed)).not.toContain('in flight')
+  })
+})
+
+describe('buildForkLiteSeed', () => {
+  function parentWith(events: SessionEvent[]): Agent {
+    return {
+      session: {
+        snapshotEvents: () => events,
+      },
+    } as unknown as Agent
+  }
+
+  it('returns [] when maxCompletedTurns is 0', () => {
+    expect(buildForkLiteSeed(parentWith(threeCompletedTurns()), 0)).toEqual([])
+  })
+
+  it('windows and renumbers through the Agent session face', () => {
+    const open = [
+      ...threeCompletedTurns(),
+      ev(9, 'turn/start', { turn: 4 }),
+      ev(10, 'user/message', { message: { role: 'user', content: [{ type: 'text', text: 'in flight' }] } }, { surfaceOp: 'append' }),
+    ]
+    const seed = buildForkLiteSeed(parentWith(open), 1)
+    expect(seed.map(e => e.seq)).toEqual(seed.map((_, i) => i))
+    expect(seed.filter(e => e.type === 'turn/end')).toHaveLength(1)
+    expect(JSON.stringify(seed)).toContain('q3')
     expect(JSON.stringify(seed)).not.toContain('in flight')
   })
 })
