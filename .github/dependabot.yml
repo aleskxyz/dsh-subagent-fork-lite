@@ -9,6 +9,7 @@ updates:
     schedule:
       interval: weekly
     ignore:
-      # Keep Node types on the engines floor (^22 / >=24), not Node 26+.
+      # Ignore all @types/node major bumps so types stay on the Node 22 line
+      # (matching engines ^22.19). Minor/patch 22.x updates still arrive.
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
