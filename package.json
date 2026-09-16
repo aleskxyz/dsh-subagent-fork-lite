@@ -5,16 +5,16 @@
   "description": "In-process DeepSeek Harness subagent provider that seeds a child with only the last N completed parent turns (fork-lite), leaving official fork untouched.",
   "private": false,
   "author": {
-    "name": "PerryLink"
+    "name": "aleskxyz"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PerryLink/dsh-subagent-fork-lite.git"
+    "url": "git+https://github.com/aleskxyz/dsh-subagent-fork-lite.git"
   },
   "bugs": {
-    "url": "https://github.com/PerryLink/dsh-subagent-fork-lite/issues"
+    "url": "https://github.com/aleskxyz/dsh-subagent-fork-lite/issues"
   },
-  "homepage": "https://github.com/PerryLink/dsh-subagent-fork-lite#readme",
+  "homepage": "https://github.com/aleskxyz/dsh-subagent-fork-lite#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -129,9 +129,5 @@
     "verify:self-contained": "node scripts/verify-self-contained.mjs",
     "prepublishOnly": "pnpm run typecheck && pnpm test && pnpm run build && pnpm run verify:self-contained"
   },
-  "license": "Apache-2.0",
-  "funding": {
-    "type": "individual",
-    "url": "https://github.com/sponsors/PerryLink"
-  }
+  "license": "Apache-2.0"
 }
