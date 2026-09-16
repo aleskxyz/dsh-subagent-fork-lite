@@ -4,24 +4,52 @@ In-process DeepSeek Harness subagent provider that seeds each child with a **bou
 
 Registered by default as `fork-lite` on `ctx.subagents`.
 
+## Support matrix
+
+| Harness tag | npm package line | Typecheck | Unit tests | Notes |
+|---|---|---|---|---|
+| `dsh-v0.1.2-rc.1` | `0.1.2-rc.1` | pass | pass | `sourceEventSeqs` remapping uses a version-safe read |
+| `dsh-v0.1.5-rc.2` | `0.1.5-rc.2` | pass | pass | Primary dev/CI pin |
+| `dsh-v0.1.6-alpha.1` | `0.1.6-alpha.1` | pass | pass | `session.snapshotEvents()` deprecated but still used (same as stock `fork`) |
+
+No native harness seed-window API exists on these lines — this plugin remains the bounded-seed provider.
+
 ## Features
 
 - **Turn-window seed** — configure how many completed parent turns the child inherits (`maxCompletedTurns`)
 - **Stable mid-session cuts** — the open (in-flight) parent turn is never seeded; only balanced history through the last `turn/end`
 - **Valid session seeds** — window events are renumbered so `seq` is contiguous from `0` (including remapped `sourceEventSeqs`)
-- **In-process child** — same run driver as other in-process backends: depth limit, tool filter, persona, structured output, and per-start `agentOptions`
-- **Context inheritance flag** — advertises `inheritsParentContext: true` when a seed is used, so tooling can describe the child accurately
-- **Named presets** — mount multiple instances with different `providerName` / `maxCompletedTurns` values for discrete budgets
+- **In-process child** — depth limit, tool filter, persona, structured output, and per-start `agentOptions`
+- **Context inheritance flag** — advertises `inheritsParentContext: true` when a seed is used
+- **Named presets** — mount multiple instances with different `providerName` / `maxCompletedTurns` values
 
-## Install
+## Quick start
 
 ```sh
+# git channel (latest main)
+dsh plugin --profile web add "github:aleskxyz/dsh-subagent-fork-lite#main"
+
+# or from npm (when published)
 dsh plugin --profile web add dsh-subagent-fork-lite
+
+# restart the profile, then verify the row
+dsh --profile web --dump-config | grep -A6 'id: subagent-fork-lite'
 ```
+
+Start a child with provider name `fork-lite` (see [Usage](#usage)).
+
+## Install & uninstall
+
+- **git channel** (latest `main`): `dsh plugin --profile web add "github:aleskxyz/dsh-subagent-fork-lite#main"` — the package `prepare` script builds with production dependencies; approve `esbuild` (and any other keys the CLI prints) if install stops on `ERR_PNPM_IGNORED_BUILDS`.
+- **npm channel** (published releases): `dsh plugin --profile web add dsh-subagent-fork-lite`.
+- **tarball channel**: `pnpm pack` in this repo, then `dsh plugin --profile web add ./dsh-subagent-fork-lite-<version>.tgz`.
+- **uninstall**: `dsh plugin --profile web remove dsh-subagent-fork-lite` (or remove the row from the profile patch).
 
 Or insert the package into your profile patch (see [`cordis.patch.yml`](cordis.patch.yml)).
 
 ## Configuration
+
+All tunables are Schemastery `Config` fields (changeable from cordis.yml). An **id-targeted override replaces the whole config row** — restate every key you need.
 
 | Field | Default | Meaning |
 |---|---|---|
@@ -75,6 +103,15 @@ await run.dispose()
 
 Omit `agentOptions` to inherit the parent’s LLM provider and model.
 
+## Tools & surfaces
+
+| Surface | Kind | Notes |
+|---|---|---|
+| `fork-lite` (configurable) | subagent provider | Registered on `ctx.subagents`; used via `subagents.start(providerName, …)` |
+| `cordis.patch.yml` | bundle patch | Default insert row for profile install |
+
+No commands, session projections, or client UI.
+
 ## How seeding works
 
 1. Read the parent session log through the last `turn/end` (completed-turn prefix).
@@ -105,8 +142,14 @@ Within the kept turns, the child receives the parent’s logged events (user/ass
 | `persona` | yes |
 | Continuable prep (`prepareContinuable`) | yes (seed captured once at creation) |
 
-## Limits
+## Known limitations
 
-- Seed policy is Cordis config only — not a field on each `start()` call
-- Window size is measured in **completed turns**, not characters or tokens
-- A window that includes surface replaces whose `sourceEventSeqs` point outside the window cannot be renumbered and will fail seed construction
+- Seed policy is Cordis config only — not a field on each `start()` call. Use multiple mounted provider names for discrete budgets.
+- Window size is measured in **completed turns**, not characters or tokens.
+- A window that includes surface replaces whose `sourceEventSeqs` point outside the window cannot be renumbered and will fail seed construction.
+- On `0.1.6-alpha.1+`, synchronous `session.snapshotEvents()` is deprecated; this provider still uses it (same deferred migration as stock `fork`).
+- Fresh AGENTS.md / runtime injects after start are separate from the seed (`agent/pre-step`); callers that need isolation must filter those themselves.
+
+## License
+
+Apache-2.0
