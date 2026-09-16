@@ -48,10 +48,11 @@ jobs:
           version: 11.7.0
       # Trusted publishing needs Node >= 22.14 and npm CLI >= 11.5.1.
       # Do not set NODE_AUTH_TOKEN / NPM_TOKEN — that forces the legacy token path.
+      # Avoid setup-node registry-url here: it writes an empty ${NODE_AUTH_TOKEN}
+      # into .npmrc and can break OIDC exchange.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
-          registry-url: 'https://registry.npmjs.org'
           cache: pnpm
       - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
@@ -70,8 +71,10 @@ jobs:
           if npm view "dsh-subagent-fork-lite@${version}" version >/dev/null 2>&1; then
             echo "dsh-subagent-fork-lite@${version} is already published; skipping npm publish"
           else
-            # OIDC auth via Trusted Publisher; provenance is generated automatically.
-            pnpm publish --no-git-checks
+            # pnpm 11's native publish does not perform npm OIDC trusted publishing.
+            # Pack with pnpm, then publish the tarball with npm (OIDC + provenance).
+            pnpm pack --pack-destination "$RUNNER_TEMP"
+            npm publish "$RUNNER_TEMP"/dsh-subagent-fork-lite-${version}.tgz --access public
           fi
       - name: Verify the version is live on the registry
         shell: bash
