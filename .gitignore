@@ -1,0 +1,12 @@
+node_modules/
+lib/
+coverage/
+dist/
+out/
+.compat-work/
+.verification/
+.pnpm-store/
+*.tgz
+*.tsbuildinfo
+package-lock.json
+.DS_Store

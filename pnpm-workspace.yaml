@@ -1,0 +1,18 @@
+packages:
+  - .
+# The pinned `@deepseek-ai/*` family is published inside the registry's
+# minimum-release-age window; exclude the whole scope so installs (local and
+# CI frozen-lockfile) resolve regardless of the clock.
+minimumReleaseAgeExclude:
+  - '@deepseek-ai/*'
+allowBuilds:
+  # Lifecycle scripts only validate or restore shipped prebuilt natives /
+  # bundler helpers; allow them so local and CI installs do not fail with
+  # ERR_PNPM_IGNORED_BUILDS.
+  esbuild: true
+  '@deepseek-ai/dsh-subprocess-local': true
+  node-pty: true
+  koffi: true
+  protobufjs: true
+  '@google/genai': true
+verifyDepsBeforeRun: false

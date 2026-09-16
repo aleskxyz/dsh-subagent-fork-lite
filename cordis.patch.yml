@@ -1,0 +1,10 @@
+# dsh-subagent-fork-lite bundle patch: register the fork-lite in-process
+# subagent provider. `name` is the package name, resolved through the
+# profile's node_modules. An id-targeted override replaces the whole config
+# row — restate every key when overriding.
+- insert:
+    - id: subagent-fork-lite
+      name: dsh-subagent-fork-lite
+      config:
+        providerName: fork-lite
+        maxCompletedTurns: 2
