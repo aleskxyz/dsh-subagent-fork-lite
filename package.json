@@ -1,6 +1,6 @@
 {
   "name": "dsh-subagent-fork-lite",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packageManager": "pnpm@11.7.0",
   "description": "In-process DeepSeek Harness subagent provider that seeds a child with only the last N completed parent turns (fork-lite), leaving official fork untouched.",
   "private": false,
